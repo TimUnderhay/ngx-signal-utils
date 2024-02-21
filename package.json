@@ -1,6 +1,6 @@
 {
   "name": "ngx-signal-tools",
-  "version": "17.2.0",
+  "version": "17.2.1",
   "description": "Angular Signal watch utils",
   "type": "module",
   "main": "./dist/public-api.js",
