@@ -1,0 +1,33 @@
+{
+  "name": "ngx-signal-tools",
+  "version": "17.2.0",
+  "description": "Angular Signal watch utils",
+  "type": "module",
+  "main": "./dist/public-api.js",
+  "types": "./dist/public-api.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "files": ["dist/*"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimUnderhay/ngx-signal-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TimUnderhay/ngx-signal-tools/issues"
+  },
+  "homepage": "https://github.com/TimUnderhay/ngx-signal-tools#readme",
+  "author": "Tim Underhay",
+  "license": "MIT",
+  "devDependencies": {
+    "@angular/core": "^17.2.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.6.2",
+    "typescript": "~5.3.2"
+  },
+  "peerDependencies": {
+    "@angular/core": "^17.2.1",
+    "rxjs": "~7.8.0"
+  }
+}
