@@ -1,4 +1,4 @@
-# ngx-signal-tools
+# ngx-signal-utils
 Helper functions for working with Angular Signals in a cleaner way.
 
 Provides several helper functions:

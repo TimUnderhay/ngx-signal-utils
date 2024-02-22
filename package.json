@@ -1,5 +1,5 @@
 {
-  "name": "ngx-signal-tools",
+  "name": "ngx-signal-utils",
   "version": "17.2.1",
   "description": "Angular Signal watch utils",
   "type": "module",
@@ -12,12 +12,12 @@
   "files": ["dist/*"],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TimUnderhay/ngx-signal-tools.git"
+    "url": "git+https://github.com/TimUnderhay/ngx-signal-utils.git"
   },
   "bugs": {
-    "url": "https://github.com/TimUnderhay/ngx-signal-tools/issues"
+    "url": "https://github.com/TimUnderhay/ngx-signal-utils/issues"
   },
-  "homepage": "https://github.com/TimUnderhay/ngx-signal-tools#readme",
+  "homepage": "https://github.com/TimUnderhay/ngx-signal-utils#readme",
   "author": "Tim Underhay",
   "license": "MIT",
   "devDependencies": {
