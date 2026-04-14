@@ -1,6 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "rootDir": "./src/lib",
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -18,10 +19,10 @@
     "sourceMap": true,
     "declaration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "nodenext",
     "useDefineForClassFields": false
   },
   "files": ["src/lib/public-api.ts"],

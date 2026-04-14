@@ -1,6 +1,6 @@
 import { effect, untracked } from "@angular/core";
-import { isArray } from './utils';
-import { simpleChangeSignalGeneric, simpleChangeSignal } from './simpleChange';
+import { isArray } from './utils.js';
+import { simpleChangeSignal } from './simpleChange.js';
 // implementation
 export function watch(source, cb, { immediate = true, once = false, wrapCallback = false, ...effectOptions } = {}) {
     const sourceIsArray = isArray(source);
@@ -31,11 +31,11 @@ export function watch(source, cb, { immediate = true, once = false, wrapCallback
         first = false;
         if (run) {
             cleanupCallback?.();
-            const cbf = () => untracked(() => cb(!sourceIsArray
+            const cbf = () => untracked(() => cb((!sourceIsArray
                 ? currentValues[0]
-                : currentValues, !sourceIsArray
+                : currentValues), (!sourceIsArray
                 ? previousValues[0]
-                : previousValues, registerCleanupCbFunction));
+                : previousValues), registerCleanupCbFunction));
             if (wrapCallback) {
                 setTimeout(() => cbf());
             }
@@ -57,7 +57,7 @@ export function watchChanges(source, cb, { immediate = true, once = false, wrapC
     const sources = sourceIsArray
         ? source
         : [source];
-    const sourceChanges = sources.map((source) => simpleChangeSignalGeneric(source));
+    const sourceChanges = sources.map((source) => simpleChangeSignal(source));
     let first = true;
     let cleanupCallback;
     const registerCleanupCbFunction = (cleanupCb) => {
@@ -89,6 +89,9 @@ export function watchChanges(source, cb, { immediate = true, once = false, wrapC
                 cbf();
             }
         }
+        // Synchronous destroy is intentional here — ensures the once guarantee
+        // is upheld before the effect can fire again. Angular supports
+        // self-destruction within an effect callback.
         if (destroy) {
             e.destroy();
         }

@@ -2,16 +2,13 @@ import {
   CreateEffectOptions,
   InputSignal,
   Signal,
+  SimpleChange,
   WritableSignal,
   effect,
   untracked
 } from "@angular/core";
-import { isArray } from './utils';
-import {
-  SimpleChangeGeneric,
-  simpleChangeSignalGeneric,
-  simpleChangeSignal
-} from './simpleChange';
+import { isArray } from './utils.js';
+import { simpleChangeSignal } from './simpleChange.js';
 
 type MapSources<T, Immediate> = {
   [K in keyof T]: T[K] extends WatchSource<infer V>
@@ -93,7 +90,7 @@ export function watch<T, Immediate extends Readonly<boolean> = true>(
     (source) => simpleChangeSignal(source)
   );
   let first = true;
-  let cleanupCallback: () => void | undefined;
+  let cleanupCallback: (() => void) | undefined;
   const registerCleanupCbFunction = (cleanupCb: () => void) => {
     cleanupCallback = cleanupCb;
   };
@@ -125,12 +122,12 @@ export function watch<T, Immediate extends Readonly<boolean> = true>(
         const cbf = () => 
           untracked(
             () => cb(
-              !sourceIsArray
+              (!sourceIsArray
                 ? currentValues[0]
-                : currentValues,
-              !sourceIsArray
+                : currentValues) as any,
+              (!sourceIsArray
                 ? previousValues[0]
-                : previousValues,
+                : previousValues) as any,
               registerCleanupCbFunction
             )
           );
@@ -158,7 +155,7 @@ export function watch<T, Immediate extends Readonly<boolean> = true>(
 // overload: single source + cb
 export function watchChanges<T, Immediate extends Readonly<boolean> = false>(
   source: WatchSource<T>,
-  cb: WatchChangesCallback<SimpleChangeGeneric<T>>,
+  cb: WatchChangesCallback<SimpleChange<T>>,
   options?: WatchOptions<Immediate>,
 ): WatchStopHandle;
 
@@ -200,7 +197,7 @@ export function watchChanges<T, Immediate extends Readonly<boolean> = true>(
     ? source
     : [source];
   const sourceChanges = sources.map(
-    (source) => simpleChangeSignalGeneric(source)
+    (source) => simpleChangeSignal(source)
   );
   let first = true;
   let cleanupCallback: () => void | undefined;
@@ -244,6 +241,9 @@ export function watchChanges<T, Immediate extends Readonly<boolean> = true>(
           cbf();
         }
       }
+      // Synchronous destroy is intentional here — ensures the once guarantee
+      // is upheld before the effect can fire again. Angular supports
+      // self-destruction within an effect callback.
       if (destroy) {
         e.destroy();
       }
@@ -263,12 +263,12 @@ export type WatchChangesCallback<V> = (
 type MapSourcesSimpleChanges<T, Immediate> = {
   [K in keyof T]: T[K] extends WatchSource<infer V>
     ? Immediate extends true
-      ? SimpleChangeGeneric<V | undefined>
-      : SimpleChangeGeneric<V>
+      ? SimpleChange<V | undefined>
+      : SimpleChange<V>
     : T[K] extends object
       ? Immediate extends true
-        ? SimpleChangeGeneric<T[K] | undefined>
-        : SimpleChangeGeneric<T[K]>
+        ? SimpleChange<T[K] | undefined>
+        : SimpleChange<T[K]>
       : never
 }
 

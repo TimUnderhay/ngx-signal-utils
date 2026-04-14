@@ -1,2 +1,3 @@
-export * from './watch';
-export * from './simpleChange';
+export * from './watch.js';
+export * from './simpleChange.js';
+export * from './mutate.js';
