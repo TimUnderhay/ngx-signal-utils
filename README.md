@@ -15,6 +15,10 @@ Provides several helper functions:
 
 * `mutateArray()` similar to `mutate()` but for signal-wrapped arrays.
 
+* `mapSignal()` provides a signal wrapping a `Map` with O(1) in-place mutation, avoiding the copy-on-write cost of `signal(new Map())`.
+
+* `setSignal()` provides a signal wrapping a `Set` with the same in-place mutation semantics as `mapSignal()`.
+
 ## `watch()`
 
 `watch()` implementation is similar to Vue's at https://vuejs.org/api/reactivity-core.html#watch, with the options parameter differing.  
@@ -191,3 +195,100 @@ mutateArray(items, arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
 
 - Deeply nested object updates with `update()` require verbose and error-prone spread chains.  `mutate()` allows natural JS mutation syntax inside the callback, with the reference swap handled transparently.
 - Array mutations such as `push()`, `splice()`, and `sort()` are expressed naturally and readably, without needing to reconstruct the array manually.
+
+## `mapSignal()`
+
+Creates a signal whose value is a `ReadonlyMap`, with in-place mutation methods that trigger reactivity via an internal version counter.  Behaves as a standard Angular signal — call it to read the current map, and use the `mutate()` / `set()` / `delete()` / `clear()` methods to modify it.
+
+```typescript
+function mapSignal<K, V>(initial?: Iterable<readonly [K, V]>): MapSignal<K, V>
+
+type MapSignal<K, V> = Signal<ReadonlyMap<K, V>> & {
+  mutate(mutator: (map: Map<K, V>) => void): void;
+  set(key: K, value: V): void;
+  delete(key: K): boolean;
+  clear(): void;
+};
+```
+
+### Example
+
+```typescript
+const cache = mapSignal<string, User>();
+
+// Reads go through the signal call — standard Angular signal protocol
+const userCount = computed(() => cache().size);
+const alice = computed(() => cache().get('alice'));
+
+// Single-key mutations via convenience methods
+cache.set('alice', { name: 'Alice', age: 30 });
+cache.set('bob', { name: 'Bob', age: 25 });
+cache.delete('bob');
+cache.clear();
+
+// Batched or arbitrary mutations via mutate()
+cache.mutate(map => {
+  for (const user of fetchedUsers) {
+    map.set(user.id, user);
+  }
+});
+```
+
+### Why use `mapSignal()` over `signal(new Map())`?
+
+The idiomatic way to make a `Map` reactive in Angular is `signal(new Map())`, with updates performed via copy-on-write: `mapSig.update(m => new Map(m).set(k, v))`.  This is O(n) per mutation, which becomes prohibitive for large collections or hot update loops.
+
+`mapSignal()` wraps a stable inner `Map` and uses a version counter to invalidate downstream consumers.  Mutations are O(1) and do not allocate a new `Map`.  Reads register reactive dependencies as expected, so `computed()` and `effect()` integrate naturally.
+
+### Tradeoff
+
+All reactive consumers re-run on any change to the map, regardless of which key changed.  This is the deliberate tradeoff in exchange for O(1) mutation.  If you need per-key dependency tracking, this is not the right primitive.
+
+### Note on `mutate()` vs `update()`
+
+`MapSignal` deliberately uses `mutate()` rather than `update()` because the operation is fundamentally different from the standard signal `update()`:
+
+- Standard `update<T>(fn: (prev: T) => T)` — replacement: the callback returns the new value, and the signal's value is swapped.
+- `MapSignal.mutate(fn: (map: Map<K, V>) => void)` — in-place mutation: the callback modifies the map directly and returns void.  The inner `Map` reference is preserved.
+
+The `mutate()` callback bumps the version regardless of whether the callback actually changed anything.  Do not retain a reference to the passed `Map` outside the callback, and do not replace it.
+
+## `setSignal()`
+
+Creates a signal whose value is a `ReadonlySet`, with the same in-place mutation semantics as `mapSignal()`.
+
+```typescript
+function setSignal<T>(initial?: Iterable<T>): SetSignal<T>
+
+type SetSignal<T> = Signal<ReadonlySet<T>> & {
+  mutate(mutator: (set: Set<T>) => void): void;
+  add(value: T): void;
+  delete(value: T): boolean;
+  clear(): void;
+};
+```
+
+### Example
+
+```typescript
+const selectedIds = setSignal<string>();
+
+// Reads go through the signal call
+const selectionCount = computed(() => selectedIds().size);
+const isSelected = (id: string) => computed(() => selectedIds().has(id));
+
+// Single-value mutations
+selectedIds.add('item-1');
+selectedIds.add('item-2');
+selectedIds.delete('item-1');
+selectedIds.clear();
+
+// Batched mutations
+selectedIds.mutate(set => {
+  for (const id of bulkSelection) set.add(id);
+});
+```
+
+### Why use `setSignal()` over `signal(new Set())`?
+
+Same rationale as `mapSignal()`: copy-on-write (`signal(new Set())` with `s.update(prev => new Set(prev).add(value))`) is O(n) per mutation.  `setSignal()` provides O(1) mutation via in-place modification of a stable inner `Set`.  The same tradeoff applies — all consumers re-run on any change.  As with `mapSignal()`, the in-place mutation method is named `mutate()` rather than `update()` to reflect that it is fundamentally a different operation.

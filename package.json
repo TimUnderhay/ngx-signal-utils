@@ -6,8 +6,10 @@
   "main": "./dist/public-api.js",
   "types": "./dist/public-api.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "files": [
     "dist/*"
@@ -23,10 +25,20 @@
   "author": "Tim Underhay",
   "license": "MIT",
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.5.2",
+    "@analogjs/vitest-angular": "^2.5.2",
+    "@angular/build": "^21.2.12",
+    "@angular/compiler": "^21.2.14",
+    "@angular/compiler-cli": "^21.2.14",
     "@angular/core": "^21.2.8",
+    "@angular/platform-browser": "^21.2.14",
+    "@types/node": "^24.12.4",
+    "@vitest/ui": "^4.1.7",
+    "jsdom": "^29.1.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.2",
-    "typescript": "~5.3.2"
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.7"
   },
   "peerDependencies": {
     "@angular/core": ">21.0.0",

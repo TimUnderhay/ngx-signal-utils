@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./dist/spec",
+    "module": "NodeNext",
+    "types": ["vitest/globals", "node"]
+  },
+  "references": [
+    { "path": "./tsconfig.lib.json" }
+  ],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+}
